@@ -4,6 +4,18 @@ from binance.client import Client
 from binance.enums import *
 
 """
+The projecd description video:
+https://youtu.be/5qzbzOCO7Qo
+
+project on the github:
+https://github.com/Yermolitskiy/xbot
+
+
+!!!! config.py file is not presented, but here's what's inside of the file:
+
+API_KEY = ''
+API_SECRET = ''
+
 above you can see the libraries, that I often used in my trading bots.
 please use google search in order to find details on how to install them.
 
