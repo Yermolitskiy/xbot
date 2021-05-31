@@ -3,16 +3,28 @@ import config
 from binance.client import Client
 from binance.enums import *
 
+"""
+above you can see the libraries, that I often used in my trading bots.
+please use google search in order to find details on how to install them.
+
+In this code, I'm not using talib and numpy.
+
+Also the config file consists of my API key data, is not here as well. please use your own, and if you are not going to make any trades,
+As I do here, just for educational purposes, we don't need it. The data will be loaded from the public web socket.
+"""
+
+
 SOCKET="wss://stream.binance.com:9443/ws/ethusdt@kline_1m"
 
 TRADE_SYMBOL = 'ETHUSDT'
 TRADE_QUANTITY = 0.025
 
 
-
+# parameters for the Periods and a total length of the list:
 LIST_LENGTH = 9
 PERIODOS=3
 
+# "Total", empty lists generated:
 highs=[]
 lows=[]
 closes=[]
@@ -44,14 +56,14 @@ period_top_tail_range=[]
 period_tail_range=[]
 period_body_range=[]
 
-
+# this is used for executing trades, but you can remove this line in order to see how it collect info and works with it.
 client = Client(config.API_KEY, config.API_SECRET) #tld='us'
 
-
+# Function that we use, to shorten the lists.
 def shorten(lst,max_len):
     while len(lst)>max_len:
         lst.pop(0)
-
+# function that we use for a "Total" list
 def sort_return_low(lst):
     if len(lst)==LIST_LENGTH:
         elem = min(lst)
@@ -59,7 +71,7 @@ def sort_return_low(lst):
         elem = float(0)
     return elem
 
-
+#Only if you are executing orders, order function:
 def order(side, quantity, symbol, order_type=ORDER_TYPE_MARKET):
     try:
         print("sending order")
@@ -71,11 +83,12 @@ def order(side, quantity, symbol, order_type=ORDER_TYPE_MARKET):
         return False
 
     return True
+
 def newlen(lst_lngth,period):
     len = int(float(lst_lngth)/float(period))
     return len
 
-
+# Collection of nested lists(periods, that we work with)
 def new_collection(lst_orig,lst_generated):
 
     close_col={}
@@ -86,7 +99,7 @@ def new_collection(lst_orig,lst_generated):
             shorten(lst_generated,PERIODOS)
         else:
             pass
-
+# taking a needed price data from the periods:
 def new_period_collection(lst_orig,lst_generated,function):
     for i in lst_orig:
         lis=function(i)
@@ -98,7 +111,7 @@ def new_oc_collection(lst_orig,lst_generated,position):
         lis=(i)[position]
         lst_generated.append(lis)
         shorten(lst_generated,PERIODOS)
-
+# defining a price range within a periods
 def period_range_lists(lst_one,lst_two):
     if lst_one:
         for i in range(PERIODOS):
@@ -188,15 +201,15 @@ def logic_element_btail(lst_l_tail,lst_body_range):
     if lst_l_tail[-1]>lst_body_range[-1]:
         t = 1
     return t
-
+# We can put all the conditions here, with the use of "and" operator, and when condition is met, we can use it as a trigger to open a position.
 def entry_complex(lst_cls,lstvol):
-    if logic_periods_down(period_middle_list)==1 : #and logic_periods_up(lstvol)==1 and period_bodyf_range()<period_tailf_range() and period_toptail_range()<period_tailf_range()
+    if logic_periods_down(period_middle_list)==1 :
         status = 1
     else:
         status = 0
     return status
 
-
+#Websocket usage:
 def on_open(ws):
     print('opened connection')
 def on_close(ws):
@@ -206,7 +219,7 @@ def on_message(ws, message):
     print('received message')
     json_message = json.loads(message) #it will take a json string, and it will convert it to python data structure
     pprint.pprint(json_message)
-
+    #Defining variables for the data that we are going to take from API
     candle = json_message['k']
     is_candle_closed = candle['x']
     open = candle['o']
@@ -220,12 +233,12 @@ def on_message(ws, message):
 
 
 
-
+    # We are using only a closing price for our system.
     if is_candle_closed:
         """
         Generating original lists to work with:
         """
-
+        # Appending lists that we have defined earlier.
         print("candle closed at {}".format(close))
         closes.append(float(close))
         shorten(closes,LIST_LENGTH)
@@ -375,7 +388,10 @@ def on_message(ws, message):
         # entry_complex(period_close_list,period_list_of_volumes)
         print("!!!   !!!   !!!   status if the position shall be opened: ")
         print(entry_complex(period_close_list,period_list_of_volumes))
-
+        """
+        Trading functionality.
+        This is just a sample of the code, please don't use it and comment it out for a training purposes, unless you modify the code your way.
+        """
         if float(close)>take_profit:
             if in_position:
                 print("Sell!")
